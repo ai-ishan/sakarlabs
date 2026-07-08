@@ -1,0 +1,53 @@
+---
+import { getEntry } from 'astro:content';
+
+interface Props {
+  post: {
+    id: string;
+    data: {
+      title: string;
+      description: string;
+      publishDate: Date;
+      author: { collection: 'authors'; id: string };
+      tags: string[];
+    };
+  };
+}
+const { post } = Astro.props;
+const author = await getEntry(post.data.author);
+const dateLabel = post.data.publishDate.toLocaleDateString('en-US', {
+  year: 'numeric', month: 'long', day: 'numeric',
+});
+---
+<a class="featured" href={`/blog/${post.id}`}>
+  <p class="featured-kicker">Latest post</p>
+  <h3 class="featured-title">{post.data.title}</h3>
+  <p class="featured-desc">{post.data.description}</p>
+  <p class="featured-meta">{author.data.name} · {dateLabel}</p>
+  <p class="featured-tags">
+    {post.data.tags.map((t) => <span class="tag">{t}</span>)}
+  </p>
+</a>
+
+<style>
+  .featured {
+    display: block;
+    padding: 1.9rem;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--bg);
+    margin-bottom: 1.5rem;
+    transition: border-color .15s ease, transform .15s ease, box-shadow .15s ease;
+  }
+  .featured:hover {
+    border-color: var(--accent);
+    text-decoration: none;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(37, 99, 235, .08);
+  }
+  .featured-kicker { font-family: var(--font-mono); font-size: .75rem; color: var(--accent); margin: 0 0 .5rem; }
+  .featured-title { margin: 0 0 .45rem; font-size: 1.75rem; letter-spacing: -.02em; color: var(--text); line-height: 1.15; }
+  .featured-desc { margin: 0 0 .8rem; color: var(--text-muted); font-size: 1.05rem; }
+  .featured-meta { margin: 0 0 .7rem; color: var(--text-muted); font-size: .92rem; }
+  .featured-tags { margin: 0; }
+</style>

@@ -1,15 +1,131 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from '../components/Hero.astro';
+import FeaturedPost from '../components/FeaturedPost.astro';
 import PostCard from '../components/PostCard.astro';
 
 const posts = (await getCollection('blog', ({ data }) => data.draft !== true))
   .sort((a, b) => b.data.publishDate.getTime() - a.data.publishDate.getTime());
+const [featured, ...rest] = posts;
+const recent = rest.slice(0, 4);
+
+const authors = (await getCollection('authors'))
+  .sort((a, b) => a.data.name.localeCompare(b.data.name));
+
+const counts = new Map<string, number>();
+for (const p of posts) for (const t of p.data.tags) counts.set(t, (counts.get(t) ?? 0) + 1);
+const topics = [...counts.entries()].sort((a, b) => b[1] - a[1]);
 ---
-<BaseLayout title="Sakar Labs Blog" description="Weekly notes on software and AI from the Sakar Labs team.">
-  <header style="padding:2rem 0 0.5rem;">
-    <h1 style="margin:0 0 0.25em;">Sakar Labs Blog</h1>
-    <p class="muted" style="margin:0;">Weekly notes on interesting problems in software and AI.</p>
-  </header>
-  {posts.map((post) => <PostCard post={post} />)}
+<BaseLayout
+  title="Sakar Labs — Notes from the lab"
+  description="Weekly, considered writing on software and AI from the Sakar Labs team."
+  mainClass="home-main"
+>
+  <Hero />
+
+  <!-- About -->
+  <section class="section" id="about">
+    <div class="section-inner">
+      <div class="section-head"><div><p class="kicker">about</p><h2>Sakar Labs</h2></div></div>
+      <p class="lede-text">
+        We're a team of engineers building software and AI systems. This is where we
+        write down the interesting parts — a debugging war story, a performance win,
+        a tool worth stealing — one considered post a week.
+      </p>
+    </div>
+  </section>
+
+  <!-- Weekly blog -->
+  <section class="section" id="weekly">
+    <div class="section-inner">
+      <div class="section-head">
+        <div><p class="kicker">weekly</p><h2>From the lab</h2></div>
+        <a class="section-link" href="/blog">View all posts →</a>
+      </div>
+      {featured ? (
+        <>
+          <FeaturedPost post={featured} />
+          {recent.length > 0 && <div class="feed">{recent.map((p) => <PostCard post={p} />)}</div>}
+        </>
+      ) : (
+        <p class="muted">No posts yet — check back soon.</p>
+      )}
+    </div>
+  </section>
+
+  <!-- Browse by topic -->
+  {topics.length > 0 && (
+    <section class="section" id="topics">
+      <div class="section-inner">
+        <div class="section-head"><div><p class="kicker">browse</p><h2>By topic</h2></div></div>
+        <div class="topics">
+          {topics.map(([t, c]) => (
+            <a class="topic" href={`/tags/${t}`}>{t}<span>{c}</span></a>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- Meet the team -->
+  <section class="section" id="team">
+    <div class="section-inner wide">
+      <div class="section-head"><div><p class="kicker">people</p><h2>Meet the team</h2></div></div>
+      <div class="team-grid">
+        {authors.map((a) => (
+          <a class="team-card" href={`/authors/${a.id}`}>
+            <span class="avatar">{a.data.name.charAt(0)}</span>
+            <span class="team-name">{a.data.name}</span>
+            {a.data.role && <span class="team-role">{a.data.role}</span>}
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
 </BaseLayout>
+
+<style>
+  .section { padding: 3.75rem 1.25rem; border-top: 1px solid var(--border); }
+  .section-inner { max-width: 68ch; margin-inline: auto; }
+  .section-inner.wide { max-width: 980px; }
+
+  .section-head {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: 1rem; margin-bottom: 1.75rem;
+  }
+  .kicker { font-family: var(--font-mono); font-size: .78rem; letter-spacing: .05em; color: var(--text-muted); margin: 0 0 .3rem; }
+  .section-head h2 { margin: 0; font-size: 1.9rem; letter-spacing: -.02em; }
+  .section-link { font-size: .95rem; white-space: nowrap; }
+
+  .lede-text { font-size: 1.15rem; line-height: 1.6; margin: 0; color: var(--text); }
+  .feed { margin-top: .25rem; }
+
+  .topics { display: flex; flex-wrap: wrap; gap: .6rem; }
+  .topic {
+    display: inline-flex; align-items: center; gap: .5rem;
+    padding: .4rem .85rem; border: 1px solid var(--border); border-radius: 999px;
+    color: var(--text); font-size: .95rem;
+  }
+  .topic span { color: var(--text-muted); font-size: .8rem; }
+  .topic:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
+
+  .team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+  .team-card {
+    display: flex; flex-direction: column; align-items: flex-start; gap: .4rem;
+    padding: 1.25rem; border: 1px solid var(--border); border-radius: 12px; background: var(--bg);
+    transition: border-color .15s ease, transform .15s ease;
+  }
+  .team-card:hover { border-color: var(--accent); text-decoration: none; transform: translateY(-2px); }
+  .avatar {
+    width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center;
+    background: linear-gradient(135deg, #2563eb, #7c3aed); color: #fff; font-weight: 700; font-size: 1.1rem;
+  }
+  .team-name { font-weight: 700; color: var(--text); }
+  .team-role { color: var(--text-muted); font-size: .9rem; }
+
+  @media (max-width: 600px) {
+    .section { padding: 2.75rem 1rem; }
+    .section-head { flex-direction: column; align-items: flex-start; }
+  }
+</style>

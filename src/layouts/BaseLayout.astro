@@ -6,8 +6,9 @@ import Footer from '../components/Footer.astro';
 interface Props {
   title: string;
   description?: string;
+  mainClass?: string;
 }
-const { title, description } = Astro.props;
+const { title, description, mainClass = 'container' } = Astro.props;
 ---
 <!doctype html>
 <html lang="en">
@@ -20,7 +21,7 @@ const { title, description } = Astro.props;
   </head>
   <body>
     <Header />
-    <main class="container">
+    <main class={mainClass}>
       <slot />
     </main>
     <Footer />

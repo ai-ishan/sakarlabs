@@ -1,0 +1,15 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PostCard from '../components/PostCard.astro';
+
+const posts = (await getCollection('blog', ({ data }) => data.draft !== true))
+  .sort((a, b) => b.data.publishDate.getTime() - a.data.publishDate.getTime());
+---
+<BaseLayout title="Sakar Labs Blog" description="Weekly notes on software and AI from the Sakar Labs team.">
+  <header style="padding:2rem 0 0.5rem;">
+    <h1 style="margin:0 0 0.25em;">Sakar Labs Blog</h1>
+    <p class="muted" style="margin:0;">Weekly notes on interesting problems in software and AI.</p>
+  </header>
+  {posts.map((post) => <PostCard post={post} />)}
+</BaseLayout>

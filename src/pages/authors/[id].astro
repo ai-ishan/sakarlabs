@@ -1,0 +1,32 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+
+export async function getStaticPaths() {
+  const authors = await getCollection('authors');
+  const posts = await getCollection('blog', ({ data }) => data.draft !== true);
+
+  return authors.map((author) => ({
+    params: { id: author.id },
+    props: {
+      author,
+      posts: posts
+        .filter((p) => p.data.author.id === author.id)
+        .sort((a, b) => b.data.publishDate.getTime() - a.data.publishDate.getTime()),
+    },
+  }));
+}
+
+const { author, posts } = Astro.props;
+const { Content } = await render(author);
+---
+<BaseLayout title={`${author.data.name} · Sakar Labs Blog`} description={`Posts by ${author.data.name}.`}>
+  <header style="padding:2rem 0 0.5rem;">
+    <h1 style="margin:0 0 0.25em;">{author.data.name}</h1>
+    {author.data.role && <p class="muted" style="margin:0;">{author.data.role}</p>}
+  </header>
+  <div class="prose"><Content /></div>
+  <h2>Posts</h2>
+  {posts.map((post) => <PostCard post={post} />)}
+</BaseLayout>

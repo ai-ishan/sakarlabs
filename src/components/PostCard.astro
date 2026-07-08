@@ -1,0 +1,32 @@
+---
+import { getEntry } from 'astro:content';
+
+interface Props {
+  post: {
+    id: string;
+    data: {
+      title: string;
+      description: string;
+      publishDate: Date;
+      author: { collection: 'authors'; id: string };
+      tags: string[];
+    };
+  };
+}
+const { post } = Astro.props;
+const author = await getEntry(post.data.author);
+const dateLabel = post.data.publishDate.toLocaleDateString('en-US', {
+  year: 'numeric', month: 'long', day: 'numeric',
+});
+---
+<article style="padding:1.5rem 0;border-bottom:1px solid var(--border);">
+  <h2 style="margin:0 0 0.25em;font-size:1.5rem;">
+    <a href={`/blog/${post.id}`} style="color:var(--text);">{post.data.title}</a>
+  </h2>
+  <p class="meta" style="margin:0 0 0.5em;">
+    {author.data.name} · {dateLabel}
+    {post.data.tags.length > 0 ? ' · ' : ''}
+    {post.data.tags.map((t) => <a class="tag" href={`/tags/${t}`}>{t}</a>)}
+  </p>
+  <p class="muted" style="margin:0;">{post.data.description}</p>
+</article>

@@ -1,0 +1,31 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import { getEntry } from 'astro:content';
+
+interface Props {
+  title: string;
+  description: string;
+  publishDate: Date;
+  authorRef: { collection: 'authors'; id: string };
+  tags: string[];
+  minutesRead?: string;
+}
+const { title, description, publishDate, authorRef, tags, minutesRead } = Astro.props;
+const author = await getEntry(authorRef);
+const dateLabel = publishDate.toLocaleDateString('en-US', {
+  year: 'numeric', month: 'long', day: 'numeric',
+});
+---
+<BaseLayout title={title} description={description}>
+  <article class="prose">
+    <h1>{title}</h1>
+    <p class="meta">
+      <a href={`/authors/${author.id}`}>{author.data.name}</a>
+      · {dateLabel}{minutesRead ? ` · ${minutesRead}` : ''}
+    </p>
+    <p>
+      {tags.map((t) => <a class="tag" href={`/tags/${t}`}>{t}</a>)}
+    </p>
+    <slot />
+  </article>
+</BaseLayout>

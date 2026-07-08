@@ -46,6 +46,16 @@ npm run build    # outputs the static site to dist/
 npm run preview  # serve the production build locally
 ```
 
+## Run with Docker Compose (local / dev)
+
+```bash
+docker compose up -d --build   # builds and serves on http://localhost:3060
+docker compose down            # stop and remove the container
+```
+
+The mapped port lives in `docker-compose.yml` (`3060:80`). Change the left number
+to serve on a different host port.
+
 ## Deploy (Docker on the Azure VM)
 
 ```bash

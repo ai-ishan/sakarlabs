@@ -1,0 +1,8 @@
+services:
+  blog:
+    build: .
+    image: sakarlabs-blog
+    container_name: sakarlabs-blog
+    ports:
+      - "3060:80"
+    restart: unless-stopped

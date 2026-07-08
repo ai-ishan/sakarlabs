@@ -1,0 +1,16 @@
+#cloud-config
+# First-boot provisioning for the Sakar Labs blog on a small Azure VM.
+# Installs Docker, adds swap (so a 1 GiB box can build), clones the public
+# repo, builds the image, and runs nginx on port 80.
+package_update: true
+packages:
+  - git
+  - docker.io
+
+runcmd:
+  # 2 GB swap so the Astro build doesn't OOM on a 1 GiB VM
+  - [ bash, -lc, "test -f /swapfile || (fallocate -l 2G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile && echo '/swapfile none swap sw 0 0' >> /etc/fstab)" ]
+  - systemctl enable --now docker
+  - [ bash, -lc, "git clone https://github.com/ai-ishan/sakarlabs.git /opt/sakarlabs" ]
+  - [ bash, -lc, "cd /opt/sakarlabs && docker build -t sakarlabs-blog . && docker run -d -p 80:80 --restart unless-stopped --name sakarlabs-blog sakarlabs-blog" ]
+  - [ bash, -lc, "echo 'sakarlabs blog provisioning complete' > /var/log/sakarlabs-ready" ]
